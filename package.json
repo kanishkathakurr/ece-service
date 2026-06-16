@@ -14,6 +14,7 @@
   "type": "commonjs",
   "dependencies": {
     "@ai-sdk/openai": "^3.0.71",
+    "@llamaindex/liteparse": "^2.0.8",
     "@qdrant/js-client-rest": "^1.18.0",
     "ai": "^6.0.206",
     "cors": "^2.8.6",

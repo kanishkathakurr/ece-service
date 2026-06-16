@@ -8,9 +8,11 @@ export function chunkParsedBlocks(
   overlap = 50
 ): DocumentChunk[] {
   const chunks: DocumentChunk[] = [];
+
   let buffer = "";
   let sourceBlocks: string[] = [];
   let pageNumbers = new Set<number>();
+  let boundingBoxes: NonNullable<DocumentChunk["boundingBoxes"]> = [];
 
   for (const block of blocks) {
     const nextText = buffer ? `${buffer}\n${block.text}` : block.text;
@@ -22,6 +24,7 @@ export function chunkParsedBlocks(
         text: buffer,
         pageNumbers: Array.from(pageNumbers),
         sourceBlocks,
+        boundingBoxes,
         metadata: {
           chunkSize,
           overlap
@@ -31,10 +34,25 @@ export function chunkParsedBlocks(
       buffer = buffer.slice(-overlap) + "\n" + block.text;
       sourceBlocks = [block.blockId];
       pageNumbers = new Set([block.pageNumber]);
+      boundingBoxes = block.boundingBox
+        ? [
+            {
+              pageNumber: block.pageNumber,
+              ...block.boundingBox
+            }
+          ]
+        : [];
     } else {
       buffer = nextText;
       sourceBlocks.push(block.blockId);
       pageNumbers.add(block.pageNumber);
+
+      if (block.boundingBox) {
+        boundingBoxes.push({
+          pageNumber: block.pageNumber,
+          ...block.boundingBox
+        });
+      }
     }
   }
 
@@ -45,6 +63,7 @@ export function chunkParsedBlocks(
       text: buffer,
       pageNumbers: Array.from(pageNumbers),
       sourceBlocks,
+      boundingBoxes,
       metadata: {
         chunkSize,
         overlap
