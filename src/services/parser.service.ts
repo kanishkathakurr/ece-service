@@ -30,6 +30,7 @@ export async function parseDocument(document: StoredDocument): Promise<ParsedBlo
     return parseTextFile(document);
   }
 
-  // Temporary safe fallback while LiteParse package export issue is resolved.
-  return parseTextFile(document);
+  throw new Error(
+    "LiteParse integration is pending because the installed native package is not compatible with this local Mac environment."
+  );
 }
