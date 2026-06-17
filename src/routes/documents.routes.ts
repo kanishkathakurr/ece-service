@@ -1,5 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
+import path from "path";
 import { randomUUID } from "crypto";
 import { env } from "../config/env.js";
 
@@ -22,9 +23,15 @@ import {
   deleteDocumentVectors
 } from "../services/qdrant.service.js";
 
-const upload = multer({
-  dest: env.UPLOAD_DIR
+const storage = multer.diskStorage({
+  destination: env.UPLOAD_DIR,
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${randomUUID()}${ext}`);
+  }
 });
+
+const upload = multer({ storage });
 
 export const documentsRouter = Router();
 
@@ -76,7 +83,6 @@ documentsRouter.post("/documents/:documentId/index", async (req, res) => {
     updateDocumentStatus(document.documentId, "indexing");
 
     const parsedBlocks = await parseDocument(document);
-
     const chunks = chunkParsedBlocks(document.documentId, parsedBlocks);
 
     const embeddings = await generateEmbeddings(
@@ -86,7 +92,6 @@ documentsRouter.post("/documents/:documentId/index", async (req, res) => {
     const vectorsStored = await upsertChunksToQdrant(chunks, embeddings);
 
     saveChunksForDocument(document.documentId, chunks);
-
     updateDocumentStatus(document.documentId, "indexed");
 
     return res.json({
