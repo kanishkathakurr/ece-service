@@ -1,19 +1,21 @@
-const VECTOR_SIZE = 1536;
-
-function createMockEmbedding(text: string): number[] {
-  const vector = new Array(VECTOR_SIZE).fill(0);
-
-  for (let i = 0; i < text.length; i++) {
-    vector[i % VECTOR_SIZE] += text.charCodeAt(i) / 1000;
-  }
-
-  return vector;
-}
+import { embedMany, embed } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { env } from "../config/env.js";
 
 export async function generateEmbeddings(texts: string[]) {
-  return texts.map(createMockEmbedding);
+  const result = await embedMany({
+    model: openai.embedding(env.EMBEDDING_MODEL),
+    values: texts
+  });
+
+  return result.embeddings;
 }
 
 export async function generateEmbedding(text: string) {
-  return createMockEmbedding(text);
+  const result = await embed({
+    model: openai.embedding(env.EMBEDDING_MODEL),
+    value: text
+  });
+
+  return result.embedding;
 }
